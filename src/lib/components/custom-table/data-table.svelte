@@ -3,9 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as Table from '$lib/components/ui/table';
-	import { ChevronUp, ChevronDown } from '@lucide/svelte';
+	import { ChevronUp, ChevronDown, Image } from '@lucide/svelte';
 	import type { DataItem, DataTableColumn } from '$lib/types/data-table';
 	import type { Snippet } from 'svelte';
+	import DataTableImagePreview from './data-table-image-preview.svelte';
 
 	let {
 		data,
@@ -165,9 +166,29 @@
 			}
 		}
 
-		return value != null ? String(value) : '-';
+		return String(value ?? '');
+	}
+
+	// Track image load errors
+	let imageErrors = $state<Record<string, boolean>>({});
+
+	// Image Preview State
+	let showPreview = $state(false);
+	let previewImages = $state<string[]>([]);
+
+	function openPreview(value: string | string[]) {
+		if (Array.isArray(value)) {
+			previewImages = value;
+		} else if (typeof value === 'string') {
+			previewImages = [value];
+		}
+		if (previewImages.length > 0) {
+			showPreview = true;
+		}
 	}
 </script>
+
+<DataTableImagePreview bind:open={showPreview} images={previewImages} />
 
 <div class="space-y-4">
 	<!-- Bulk delete -->
@@ -233,15 +254,28 @@
 								</Table.Cell>
 							{:else if column.type === 'image'}
 								<Table.Cell>
-									{#if item[column.accessorKey] && typeof item[column.accessorKey] === 'string'}
-										<img
-											src={item[column.accessorKey]}
-											alt="Item"
-											class="h-10 w-10 object-cover rounded bg-muted aspect-square"
-										/>
+									{#if column.accessorKey && item[column.accessorKey] && !imageErrors[`${item.id}-${column.accessorKey}`]}
+										<button
+											type="button"
+											class="cursor-pointer hover:opacity-80 transition-opacity"
+											onclick={() => openPreview(item[column.accessorKey!])}
+										>
+											<img
+												src={Array.isArray(item[column.accessorKey!])
+													? item[column.accessorKey!][0]
+													: item[column.accessorKey!]}
+												alt="Item"
+												class="h-10 w-10 object-cover rounded bg-muted aspect-square"
+												onerror={() => {
+													if (column.accessorKey) {
+														imageErrors[`${item.id}-${column.accessorKey}`] = true;
+													}
+												}}
+											/>
+										</button>
 									{:else}
 										<div class="h-10 w-10 rounded bg-muted flex items-center justify-center">
-											<span class="text-xs text-muted-foreground">-</span>
+											<Image class="w-5 h-5 text-muted-foreground" />
 										</div>
 									{/if}
 								</Table.Cell>

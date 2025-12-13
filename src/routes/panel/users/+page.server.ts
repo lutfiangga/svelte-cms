@@ -34,7 +34,9 @@ export const actions: Actions = {
 		const rawData = {
 			username: formData.get('username'),
 			password: formData.get('password'),
-			age: formData.get('age')
+			age: formData.get('age'),
+			photo: formData.get('photo'),
+			photo_path: formData.get('photo_path')
 		};
 
 		const result = CreateUserSchema.safeParse(rawData);
@@ -61,7 +63,9 @@ export const actions: Actions = {
 			id: formData.get('id'),
 			username: formData.get('username'),
 			password: formData.get('password'),
-			age: formData.get('age')
+			age: formData.get('age'),
+			photo: formData.get('photo'),
+			photo_path: formData.get('photo_path')
 		};
 
 		const result = UpdateUserSchema.safeParse(rawData);

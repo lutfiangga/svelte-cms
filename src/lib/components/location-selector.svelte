@@ -79,7 +79,7 @@
 	<div class="space-y-2">
 		<Label for="province">Province</Label>
 		<Select.Root onSelectedChange={(v) => v?.value && handleProvinceChange(v.value)}>
-			<Select.Trigger id="province">
+			<Select.Trigger id="province" class="w-full">
 				<Select.Value placeholder="Select province" />
 			</Select.Trigger>
 			<Select.Content>
@@ -97,7 +97,7 @@
 			disabled={!selectedProvince}
 			onSelectedChange={(v) => v?.value && handleCityChange(v.value)}
 		>
-			<Select.Trigger id="city">
+			<Select.Trigger id="city" class="w-full">
 				<Select.Value placeholder="Select city" />
 			</Select.Trigger>
 			<Select.Content>
@@ -115,7 +115,7 @@
 			disabled={!selectedCity}
 			onSelectedChange={(v) => v?.value && handleDistrictChange(v.value)}
 		>
-			<Select.Trigger id="district">
+			<Select.Trigger id="district" class="w-full">
 				<Select.Value placeholder="Select district" />
 			</Select.Trigger>
 			<Select.Content>

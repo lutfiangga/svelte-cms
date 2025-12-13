@@ -18,27 +18,28 @@
 	import { page } from '$app/stores';
 
 	import { enhance } from '$app/forms';
-	import type { PageServerData } from './$types';
+	import type { PageServerData } from './dashboard/$types';
 
 	let { data, children }: any = $props();
+	const prefix = '/panel/';
 
 	// Menu items
 	const routes = [
-		{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-		{ title: 'User', url: '/user', icon: Users },
-		{ title: 'Categories', url: '/categories', icon: ChartColumnStacked },
-		{ title: 'Products', url: '/products', icon: Package },
-		{ title: 'Outlets', url: '/outlets', icon: Store },
-		{ title: 'Outlets Map', url: '/outlet-map', icon: MapPinned },
-		{ title: 'Settings', url: '/dashboard/settings', icon: SettingsIcon },
-		{ title: 'Docs', url: '/docs', icon: FolderOpen }
+		{ title: 'Dashboard', url: prefix + 'dashboard', icon: LayoutDashboard },
+		{ title: 'Users', url: prefix + 'users', icon: Users },
+		{ title: 'Categories', url: prefix + 'categories', icon: ChartColumnStacked },
+		{ title: 'Products', url: prefix + 'products', icon: Package },
+		{ title: 'Outlets', url: prefix + 'outlets', icon: Store },
+		{ title: 'Outlets Map', url: prefix + 'outlet-map', icon: MapPinned },
+		{ title: 'Settings', url: prefix + 'settings', icon: SettingsIcon },
+		{ title: 'Docs', url:'/docs', icon: FolderOpen }
 	];
 
 	let breadcrumbs = $derived.by(() => {
 		const path = $page.url.pathname;
 		const segments = path.split('/').filter(Boolean);
 		return segments.map((segment, index) => {
-			const href = '/' + segments.slice(0, index + 1).join('/');
+			const href = prefix + segments.slice(0, index + 1).join('/');
 			const title = segment.charAt(0).toUpperCase() + segment.slice(1);
 			return {
 				title,
@@ -46,6 +47,15 @@
 				isPage: index === segments.length - 1
 			};
 		});
+	});
+	// Image error state
+	let imgError = $state(false);
+
+	$effect(() => {
+		// Reset error state when photo changes
+		if (data?.user?.photo) {
+			imgError = false;
+		}
 	});
 </script>
 
@@ -62,15 +72,20 @@
 			<!-- User Dropdown -->
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted">
-					{#if data?.user?.photo}
-						<img src={data.user.photo} alt="Profile" class="h-8 w-8 rounded-full object-cover" />
+					{#if data?.user?.photo && !imgError}
+						<img
+							src={data.user.photo}
+							alt="Profile"
+							class="h-8 w-8 rounded-full object-cover"
+							onerror={() => (imgError = true)}
+						/>
 					{:else}
 						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
 							<User class="h-4 w-4" />
 						</div>
 					{/if}
 					<div class="text-left">
-						<p class="text-sm font-medium">{data?.user?.name || data?.user?.name || 'User'}</p>
+						<p class="text-sm font-medium">{data?.user?.name || 'User'}</p>
 						<p class="text-xs text-muted-foreground">@{data?.user?.username || 'user'}</p>
 					</div>
 				</DropdownMenu.Trigger>

@@ -45,7 +45,7 @@
 				</div>
 				<h4 class="font-semibold mb-2 text-lg">Clone the repository</h4>
 				<div class="bg-muted rounded-md p-4 overflow-x-auto border">
-					<code class="text-sm font-mono">git clone [repository-url]<br />cd [project-name]</code>
+					<code class="text-sm font-mono">npx degit lutfiangga/zvelkit my-app<br />cd my-app</code>
 				</div>
 			</div>
 

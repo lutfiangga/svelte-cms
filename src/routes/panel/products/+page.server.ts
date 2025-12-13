@@ -18,19 +18,28 @@ export const actions: Actions = {
         const formData = await request.formData();
 
         // Construct raw object for validation
+        const allImages = formData.getAll('images');
+        const validImages = allImages.filter((f): f is File => f instanceof File && f.size > 0);
+
         const rawData = {
             name: formData.get('name'),
             categoryId: formData.get('categoryId'),
             price: formData.get('price'),
             stock: formData.get('stock'),
-            image: formData.get('image'),
-            image_path: formData.get('image_path')
+            images: validImages.length > 0 ? validImages : undefined,
+            image_path: (formData.get('images_path') as string) || 'uploads/products'
         };
+
+        console.log('Raw data:', {
+            ...rawData,
+            images: rawData.images?.map((f: any) => ({ name: f.name, size: f.size, type: f.type })) || []
+        });
 
         const result = CreateProductSchema.safeParse(rawData);
 
         if (!result.success) {
             const errors = result.error.flatten().fieldErrors;
+            console.error('Validation errors:', errors);
             // We return formatting error logic, simplest is joining or just passing raw
             return fail(400, { message: 'Validation failed', errors });
         }
@@ -47,19 +56,38 @@ export const actions: Actions = {
     update: async ({ request }) => {
         const formData = await request.formData();
 
+        const allImages = formData.getAll('images');
+        const validImages = allImages.filter((f): f is File => f instanceof File && f.size > 0);
+
+        // Get existing images to keep
+        const existingImages = formData.getAll('images_existing').filter((v): v is string => typeof v === 'string');
+
+        // Get deleted images
+        const deletedImages = formData.getAll('images_deleted').filter((v): v is string => typeof v === 'string');
+
         const rawData = {
             id: formData.get('id'),
             name: formData.get('name'),
             categoryId: formData.get('categoryId'),
             price: formData.get('price'),
             stock: formData.get('stock'),
-            image: formData.get('image'),
-            image_path: formData.get('image_path')
+            images: validImages.length > 0 ? validImages : undefined,
+            images_existing: existingImages.length > 0 ? existingImages : undefined,
+            images_deleted: deletedImages.length > 0 ? deletedImages : undefined,
+            image_path: (formData.get('images_path') as string) || 'uploads/products'
         };
+
+        console.log('Update rawData:', {
+            ...rawData,
+            images: rawData.images?.map((f: any) => f.name) || [],
+            images_existing: rawData.images_existing || [],
+            images_deleted: rawData.images_deleted || []
+        });
 
         const result = UpdateProductSchema.safeParse(rawData);
         if (!result.success) {
             const errors = result.error.flatten().fieldErrors;
+            console.error('Update Validation errors:', errors);
             return fail(400, { message: 'Validation failed', errors });
         }
 

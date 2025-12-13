@@ -54,7 +54,7 @@ export class ProductService {
                 categoryName: category.name,
                 price: product.price,
                 stock: product.stock,
-                image: product.image,
+                images: product.images,
                 updatedAt: product.updatedAt
             })
             .from(product)
@@ -63,9 +63,12 @@ export class ProductService {
     }
 
     static async create(data: CreateProductDTO) {
-        let imagePath = null;
-        if (data.image) {
-            imagePath = await this.saveFile(data.image, data.image_path);
+        let imagePaths: string[] = [];
+        if (data.images && data.images.length > 0) {
+            for (const file of data.images) {
+                const path = await this.saveFile(file, data.image_path);
+                if (path) imagePaths.push(path);
+            }
         }
 
         await db.insert(product).values({
@@ -74,7 +77,7 @@ export class ProductService {
             categoryId: data.categoryId,
             price: data.price,
             stock: data.stock,
-            image: imagePath,
+            images: imagePaths,
             updatedAt: new Date()
         });
     }
@@ -83,10 +86,22 @@ export class ProductService {
         const [existing] = await db.select().from(product).where(eq(product.id, data.id)).limit(1);
         if (!existing) throw new Error("Product not found");
 
-        let imagePath = existing.image;
-        if (data.image && data.image.size > 0 && data.image.name !== 'undefined') {
-            this.deleteFile(existing.image);
-            imagePath = await this.saveFile(data.image, data.image_path);
+        // Start with existing images to keep (from form hidden inputs)
+        let imagePaths: string[] = data.images_existing || [];
+
+        // Delete removed images (files and from list)
+        if (data.images_deleted && data.images_deleted.length > 0) {
+            for (const deletedPath of data.images_deleted) {
+                this.deleteFile(deletedPath);
+            }
+        }
+
+        // Upload new images and add to list
+        if (data.images && data.images.length > 0) {
+            for (const file of data.images) {
+                const path = await this.saveFile(file, data.image_path);
+                if (path) imagePaths.push(path);
+            }
         }
 
         await db.update(product)
@@ -95,7 +110,7 @@ export class ProductService {
                 categoryId: data.categoryId,
                 price: data.price,
                 stock: data.stock,
-                image: imagePath,
+                images: imagePaths,
                 updatedAt: new Date()
             })
             .where(eq(product.id, data.id));
@@ -103,8 +118,10 @@ export class ProductService {
 
     static async delete(id: string) {
         const [existing] = await db.select().from(product).where(eq(product.id, id)).limit(1);
-        if (existing && existing.image) {
-            this.deleteFile(existing.image);
+        if (existing && existing.images && Array.isArray(existing.images)) {
+            for (const img of existing.images) {
+                this.deleteFile(img);
+            }
         }
         await db.delete(product).where(eq(product.id, id));
     }

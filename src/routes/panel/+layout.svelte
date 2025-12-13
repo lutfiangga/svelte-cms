@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DashboardLayout from './dashboard-layout.svelte';
+	import DashboardLayout from './panel-layout.svelte';
 
 	let { data, children } = $props();
 </script>

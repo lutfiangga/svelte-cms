@@ -7,6 +7,12 @@ export const userColumns: DataTableColumn[] = [
     sortable: false
   },
   {
+    accessorKey: 'photo',
+    label: 'Photo',
+    type: 'image',
+    sortable: false
+  },
+  {
     accessorKey: 'id',
     label: 'ID',
     sortable: true,

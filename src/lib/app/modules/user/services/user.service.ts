@@ -85,16 +85,25 @@ export class UserService {
     static async create(data: CreateUserDTO) {
         const passwordHash = await hashPassword(data.password);
 
+        let photoPath = null;
+        if (data.photo && data.photo.size > 0) {
+            photoPath = await this.saveFile(data.photo, data.photo_path);
+        }
+
         await db.insert(user).values({
             id: crypto.randomUUID(),
             username: data.username,
             email: data.email || `${data.username}@example.com`,
             passwordHash: passwordHash,
-            age: data.age ?? null
+            age: data.age ?? null,
+            photo: photoPath
         });
     }
 
     static async update(data: UpdateUserDTO) {
+        const [existing] = await db.select().from(user).where(eq(user.id, data.id)).limit(1);
+        if (!existing) throw new Error("User not found");
+
         const updateData: Record<string, any> = {
             username: data.username,
             age: data.age ?? null
@@ -102,6 +111,13 @@ export class UserService {
 
         if (data.password) {
             updateData.passwordHash = await hashPassword(data.password);
+        }
+
+        // Handle photo upload
+        if (data.photo && data.photo.size > 0 && data.photo.name !== 'undefined') {
+            this.deleteFile(existing.photo);
+            const photoPath = await this.saveFile(data.photo, data.photo_path);
+            updateData.photo = photoPath;
         }
 
         await db.update(user).set(updateData).where(eq(user.id, data.id));

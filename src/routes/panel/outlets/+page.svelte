@@ -4,12 +4,19 @@
 	import DataTableToolbar from '$lib/components/custom-table/data-table-toolbar.svelte';
 	import DeleteDialog from '$lib/components/custom-table/data-table-delete-dialog.svelte';
 	import { outletColumns, type Outlet } from './columns';
-	import type { FormSchema } from '$lib/types/form-builder';
 	import { Plus, SquarePen, Trash2 } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
+	import { getOutletSchema } from '$lib/app/modules/outlet/forms/outlet.form';
+	import { TableState } from '$lib/app/helpers/table.state.svelte';
+	import { CrudState } from '$lib/app/helpers/crud.state.svelte';
+	import { ExportHelper, type ExportFormat } from '$lib/app/helpers/export.helper';
 
 	let { data } = $props();
+
+	// State management
+	const tableState = new TableState(outletColumns);
+	const crudState = new CrudState<Outlet>();
 
 	// Location data for comboboxes
 	let provinces: any[] = $state([]);
@@ -60,8 +67,6 @@
 	const cityOptions = $derived(cities.map((c) => ({ value: c.name, label: c.name })));
 	const districtOptions = $derived(districts.map((d) => ({ value: d.name, label: d.name })));
 
-	import { getOutletSchema } from '$lib/app/modules/outlet/forms/outlet.form';
-
 	const outletSchema = $derived(
 		getOutletSchema(
 			provinceOptions,
@@ -72,84 +77,19 @@
 		)
 	);
 
-	// State management
-	let visibleColumns = $state(
-		outletColumns.reduce(
-			(acc, col) => {
-				const key = col.accessorKey || col.id;
-				if (key && col.type !== 'select' && col.type !== 'actions') {
-					acc[key] = true;
-				}
-				return acc;
-			},
-			{} as Record<string, boolean>
-		)
-	);
-
-	let searchValue = $state('');
-	let activeSearchTerm = $state('');
-	let selectedRows = $state<Record<string, boolean>>({});
-
-	let showCreate = $state(false);
-	let showEdit = $state(false);
-	let showDelete = $state(false);
-	let editItem: Outlet | null = $state(null);
-	let deleteItem: Outlet | null = $state(null);
-
-	// Handlers
-	function applySearch() {
-		activeSearchTerm = searchValue;
-	}
-
-	function clearSearch() {
-		searchValue = '';
-		activeSearchTerm = '';
-	}
-
-	function toggleColumn(columnId: string) {
-		visibleColumns = { ...visibleColumns, [columnId]: !visibleColumns[columnId] };
-	}
-
-	function exportCSV() {
-		const headers = outletColumns
-			.filter((col) => col.accessorKey && col.type !== 'select' && col.type !== 'actions')
-			.map((col) => col.label || col.accessorKey);
-
-		const rows = data.outlets.map((outlet) =>
-			outletColumns
-				.filter((col) => col.accessorKey && col.type !== 'select' && col.type !== 'actions')
-				.map((col) => {
-					const value = outlet[col.accessorKey!];
-					return value != null ? String(value) : '';
-				})
-		);
-
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
-
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const link = document.createElement('a');
-		const url = URL.createObjectURL(blob);
-		link.setAttribute('href', url);
-		link.setAttribute('download', `outlets_${new Date().toISOString().split('T')[0]}.csv`);
-		link.style.visibility = 'hidden';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-	}
-
 	function handleEdit(item: Outlet) {
 		// Convert latitude and longitude to string for the form
-		editItem = {
+		crudState.openEdit({
 			...item,
 			latitude: item.latitude?.toString() as any,
 			longitude: item.longitude?.toString() as any
-		};
-		showEdit = true;
+		});
 	}
 
-	function handleDelete(item: Outlet) {
-		deleteItem = item;
-		showDelete = true;
+	// Export handler - outlets only uses CSV and Excel
+	function handleExport(format: ExportFormat) {
+		const filename = `outlets_${new Date().toISOString().split('T')[0]}`;
+		ExportHelper.export(format, data.outlets ?? [], outletColumns, filename);
 	}
 </script>
 
@@ -161,7 +101,7 @@
 		</div>
 		<button
 			class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-			onclick={() => (showCreate = true)}
+			onclick={crudState.openCreate}
 		>
 			<Plus class="h-4 w-4" />
 			Add Outlet
@@ -171,20 +111,21 @@
 	<DataTableToolbar
 		title="Filter Outlets"
 		searchPlaceholder="Search outlets..."
-		bind:searchValue
-		onSearch={applySearch}
-		onClear={clearSearch}
-		bind:columns={visibleColumns}
-		onToggleColumn={toggleColumn}
-		onExportCSV={exportCSV}
+		bind:searchValue={tableState.searchValue}
+		onSearch={tableState.applySearch}
+		onClear={tableState.clearSearch}
+		bind:columns={tableState.visibleColumns}
+		onToggleColumn={tableState.toggleColumn}
+		onExport={handleExport}
+		exportFormats={['csv', 'xlsx']}
 	/>
 
 	<DataTable
 		data={data.outlets}
 		columns={outletColumns}
-		{visibleColumns}
-		searchTerm={activeSearchTerm}
-		bind:selectedRows
+		visibleColumns={tableState.visibleColumns}
+		searchTerm={tableState.activeSearchTerm}
+		bind:selectedRows={tableState.selectedRows}
 		deleteAction="?/delete"
 		bulkDeleteAction="?/bulkDelete"
 	>
@@ -193,7 +134,12 @@
 				<Button size="icon" variant="ghost" onclick={() => handleEdit(item)} title="Edit">
 					<SquarePen class="w-4 h-4" />
 				</Button>
-				<Button size="icon" variant="destructive" onclick={() => handleDelete(item)} title="Delete">
+				<Button
+					size="icon"
+					variant="destructive"
+					onclick={() => crudState.openDelete(item)}
+					title="Delete"
+				>
 					<Trash2 class="w-4 h-4" />
 				</Button>
 			</div>
@@ -201,29 +147,29 @@
 	</DataTable>
 
 	<DataTableFormDialog
-		bind:open={showCreate}
+		bind:open={crudState.showCreate}
 		mode="create"
 		schema={outletSchema}
 		action="?/create"
 		title="Create Outlet"
 	/>
 
-	{#if showEdit && editItem}
+	{#if crudState.showEdit && crudState.editItem}
 		<DataTableFormDialog
-			bind:open={showEdit}
+			bind:open={crudState.showEdit}
 			mode="edit"
-			data={editItem}
+			data={crudState.editItem}
 			schema={outletSchema}
 			action="?/update"
 			title="Edit Outlet"
 		/>
 	{/if}
 
-	{#if showDelete && deleteItem}
+	{#if crudState.showDelete && crudState.deleteItem}
 		<DeleteDialog
-			bind:open={showDelete}
-			id={deleteItem.id}
-			resourceName={deleteItem.name}
+			bind:open={crudState.showDelete}
+			id={crudState.deleteItem.id}
+			resourceName={crudState.deleteItem.name}
 			title="Delete Outlet"
 			description="Are you sure you want to delete this outlet?"
 			action="?/delete"

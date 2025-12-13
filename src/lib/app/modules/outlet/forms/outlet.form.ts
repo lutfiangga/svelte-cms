@@ -50,7 +50,7 @@ export const getOutletSchema = (
         },
         {
             type: 'section',
-            title: 'Coordinates (Optional)',
+            title: 'Coordinates',
             children: [
                 {
                     type: 'custom',

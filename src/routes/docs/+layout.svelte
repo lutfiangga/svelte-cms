@@ -3,7 +3,7 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { BookOpen, Code2, Layers, Box, Terminal, FolderGit2 } from '@lucide/svelte';
+	import { BookOpen, Code2, Layers, Box, Terminal, FolderGit2, FileCode } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 
@@ -19,7 +19,8 @@
 		{
 			title: 'Development',
 			items: [
-				{ title: 'Modules', href: '/docs/modules', icon: Box },
+				{ title: 'Core Features', href: '/docs/modules', icon: Box },
+				{ title: 'Code Examples', href: '/docs/examples', icon: FileCode },
 				{ title: 'Create New Module', href: '/docs/create-module', icon: Code2 }
 			]
 		}
@@ -88,11 +89,12 @@
 				<Badge variant="secondary" class="font-normal text-xs">v1.0.0</Badge>
 			</div>
 			<nav class="flex items-center gap-4 text-sm font-medium">
-				<a href="/dashboard" class="transition-colors hover:text-primary text-muted-foreground"
-					>Dashboard</a
+				<a
+					href="/panel/dashboard"
+					class="transition-colors hover:text-primary text-muted-foreground">Dashboard</a
 				>
 				<a
-					href="https://github.com"
+					href="https://github.com/lutfiangga"
 					target="_blank"
 					class="transition-colors hover:text-primary text-muted-foreground">GitHub</a
 				>

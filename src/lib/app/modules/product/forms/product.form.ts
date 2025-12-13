@@ -8,13 +8,13 @@ export const getProductSchema = (categoryOptions: { value: string; label: string
         description: 'Essential information about the product.',
         children: [
             {
-                name: 'image',
-                label: 'Product Image',
+                name: 'images',
+                label: 'Product Images',
                 type: 'file',
                 accept: 'image/*',
                 path: 'uploads/products', // Store in this path
                 maxSize: 1024 * 1024 * 5, // 5MB max
-                multiple: false // Explicitly single
+                multiple: true // Allow multiple
             },
             {
                 name: 'name',

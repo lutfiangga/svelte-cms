@@ -28,7 +28,7 @@
 	}
 </script>
 
-<div class="space-y-2 {config.class || ''}">
+<div class="space-y-2 w-full {config.class || ''}">
 	<Label for={config.name}>
 		{config.label}
 		{#if config.required}

@@ -1,4 +1,4 @@
-import { pgTable, integer, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, integer, text, timestamp, json } from 'drizzle-orm/pg-core';
 
 export const product = pgTable('product', {
     id: text('id').primaryKey(),
@@ -6,7 +6,7 @@ export const product = pgTable('product', {
     categoryId: text('category_id').notNull(),
     price: integer('price').notNull(),
     stock: integer('stock').notNull().default(0),
-    image: text('image'),
+    images: json('images').$type<string[]>(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow()
 });
 

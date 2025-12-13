@@ -2,7 +2,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Settings2, Download, X } from '@lucide/svelte';
+	import { Settings2, Download, X, FileSpreadsheet, FileText, FileType } from '@lucide/svelte';
+	import type { ExportFormat } from '$lib/app/helpers/export.helper';
 
 	let {
 		title = 'Data Management',
@@ -11,8 +12,8 @@
 		columns = $bindable({}),
 		onSearch,
 		onClear,
-		onExportCSV,
-		onExportXLSX,
+		onExport,
+		exportFormats = ['csv', 'xlsx', 'pdf'] as ExportFormat[],
 		onToggleColumn
 	}: {
 		title?: string;
@@ -21,12 +22,19 @@
 		columns: Record<string, boolean>;
 		onSearch?: () => void;
 		onClear?: () => void;
-		onExportCSV?: () => void;
-		onExportXLSX?: () => void;
+		onExport?: (format: ExportFormat) => void;
+		exportFormats?: ExportFormat[];
 		onToggleColumn?: (col: string) => void;
 	} = $props();
 
 	const columnKeys = $derived(Object.keys(columns));
+
+	// Format labels and icons
+	const formatConfig: Record<ExportFormat, { label: string; icon: typeof FileText }> = {
+		csv: { label: 'CSV (.csv)', icon: FileText },
+		xlsx: { label: 'Excel (.xlsx)', icon: FileSpreadsheet },
+		pdf: { label: 'PDF (.pdf)', icon: FileType }
+	};
 </script>
 
 <div class="flex items-center justify-between mb-4">
@@ -56,7 +64,7 @@
 	</div>
 
 	<div class="flex items-center gap-2">
-		{#if onExportCSV || onExportXLSX}
+		{#if onExport && exportFormats.length > 0}
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					<Button variant="outline" size="sm" class="h-8 border-dashed">
@@ -65,12 +73,21 @@
 					</Button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end">
-					{#if onExportCSV}
-						<DropdownMenu.Item onclick={onExportCSV}>Export CSV</DropdownMenu.Item>
-					{/if}
-					{#if onExportXLSX}
-						<DropdownMenu.Item onclick={onExportXLSX}>Export Excel</DropdownMenu.Item>
-					{/if}
+					<DropdownMenu.Label>Export Format</DropdownMenu.Label>
+					<DropdownMenu.Separator />
+					{#each exportFormats as format}
+						{@const config = formatConfig[format]}
+						<DropdownMenu.Item onclick={() => onExport(format)}>
+							{#if format === 'csv'}
+								<FileText class="mr-2 h-4 w-4" />
+							{:else if format === 'xlsx'}
+								<FileSpreadsheet class="mr-2 h-4 w-4" />
+							{:else if format === 'pdf'}
+								<FileType class="mr-2 h-4 w-4" />
+							{/if}
+							{config.label}
+						</DropdownMenu.Item>
+					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		{/if}

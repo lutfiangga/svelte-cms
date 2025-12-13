@@ -56,7 +56,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+	<Dialog.Content class="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>{dialogTitle}</Dialog.Title>
 			<Dialog.Description>{dialogDesc}</Dialog.Description>

@@ -24,6 +24,16 @@
 			reader.readAsDataURL(file);
 		}
 	}
+
+	// Image error state
+	let imgError = $state(false);
+
+	$effect(() => {
+		// Reset error state when photo changes
+		if (data?.user?.photo) {
+			imgError = false;
+		}
+	});
 </script>
 
 <div class="mx-auto w-full">
@@ -82,8 +92,13 @@
 					<!-- Photo Upload -->
 					<div class="flex items-center gap-6">
 						<div class="relative">
-							{#if photoPreview}
-								<img src={photoPreview} alt="Profile" class="h-24 w-24 rounded-full object-cover" />
+							{#if photoPreview && !imgError}
+								<img
+									src={photoPreview}
+									alt="Profile"
+									class="h-24 w-24 rounded-full object-cover"
+									onerror={() => (imgError = true)}
+								/>
 							{:else}
 								<div class="flex h-24 w-24 items-center justify-center rounded-full bg-muted">
 									<User class="h-12 w-12 text-muted-foreground" />

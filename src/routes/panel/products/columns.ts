@@ -7,7 +7,7 @@ export interface Product {
     categoryId?: string | null;
     categoryName?: string | null;
     stock: number;
-    image?: string | null;
+    images?: string[] | null;
     updatedAt: Date | string | null; // Adjusted to match schema return
 }
 
@@ -17,8 +17,8 @@ export const productColumns: DataTableColumn<Product>[] = [
         id: 'select',
     },
     {
-        accessorKey: 'image',
-        label: 'Image',
+        accessorKey: 'images',
+        label: 'Images',
         type: 'image',
         sortable: false
     },

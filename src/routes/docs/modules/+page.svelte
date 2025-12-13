@@ -8,7 +8,11 @@
 		Shield,
 		Lock,
 		Fingerprint,
-		KeyRound
+		KeyRound,
+		Download,
+		FileSpreadsheet,
+		FileText,
+		FileType
 	} from '@lucide/svelte';
 </script>
 
@@ -73,7 +77,7 @@
 						</li>
 						<li class="flex items-center gap-2">
 							<div class="h-2 w-2 rounded-full bg-purple-500"></div>
-							file
+							file (multiple)
 						</li>
 						<li class="flex items-center gap-2">
 							<div class="h-2 w-2 rounded-full bg-yellow-500"></div>
@@ -90,12 +94,13 @@
 				<Card.CardContent>
 					<pre class="overflow-x-auto text-xs font-mono"><code
 							>const schema = [
-  {'{'}
-    type: 'group',
-    label: 'Identify',
+  {'{'} 
+    type: 'grid', 
+    columns: 2,
     children: [
-       {'{'} name: 'username', type: 'text', label: 'User' {'}'},
-       {'{'} name: 'role', type: 'select', options: [...] {'}'}
+      {'{'} name: 'username', type: 'text', label: 'User' {'}'},
+      {'{'} name: 'role', type: 'select', options: [...] {'}'},
+      {'{'} name: 'images', type: 'file', multiple: true {'}'} 
     ]
   {'}'}
 ];</code
@@ -103,6 +108,144 @@
 				</Card.CardContent>
 			</Card.Card>
 		</div>
+	</section>
+
+	<Separator />
+
+	<!-- Middleware -->
+	<section class="space-y-4">
+		<div class="flex items-center gap-3">
+			<div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+				<Shield class="h-8 w-8" />
+			</div>
+			<div>
+				<h2 class="text-3xl font-bold tracking-tight">Middleware</h2>
+				<p class="text-muted-foreground">Route protection made easy</p>
+			</div>
+		</div>
+
+		<p class="leading-7">
+			Middleware functions protect routes and manage authentication state. Import from <code
+				>$lib/app/middleware</code
+			>.
+		</p>
+
+		<div class="grid md:grid-cols-3 gap-6">
+			<Card.Card>
+				<Card.CardHeader>
+					<Card.CardTitle>isLogin</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground mb-2">
+						Redirects to <code>/login</code> if not authenticated.
+					</p>
+					<pre
+						class="text-xs bg-muted p-2 rounded font-mono overflow-x-auto">return isLogin(event);</pre>
+				</Card.CardContent>
+			</Card.Card>
+
+			<Card.Card>
+				<Card.CardHeader>
+					<Card.CardTitle>isLoginWithRole</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground mb-2">Check login + specific roles.</p>
+					<pre
+						class="text-xs bg-muted p-2 rounded font-mono overflow-x-auto">return isLoginWithRole(event, ['admin']);</pre>
+				</Card.CardContent>
+			</Card.Card>
+
+			<Card.Card>
+				<Card.CardHeader>
+					<Card.CardTitle>isGuest</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground mb-2">
+						Redirects to <code>/panel/dashboard</code> if logged in.
+					</p>
+					<pre
+						class="text-xs bg-muted p-2 rounded font-mono overflow-x-auto">return isGuest(event);</pre>
+				</Card.CardContent>
+			</Card.Card>
+		</div>
+	</section>
+
+	<Separator />
+
+	<!-- Export Helper -->
+	<section class="space-y-4">
+		<div class="flex items-center gap-3">
+			<div class="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg text-cyan-600 dark:text-cyan-400">
+				<Download class="h-8 w-8" />
+			</div>
+			<div>
+				<h2 class="text-3xl font-bold tracking-tight">Export Helper</h2>
+				<p class="text-muted-foreground">Multi-format data export</p>
+			</div>
+		</div>
+
+		<p class="leading-7">
+			Export table data to CSV, Excel, or PDF with a single function call. Each route can specify
+			which formats are available.
+		</p>
+
+		<div class="grid md:grid-cols-3 gap-6">
+			<Card.Card>
+				<Card.CardHeader class="flex flex-row items-center gap-2">
+					<FileText class="h-6 w-6 text-green-500" />
+					<Card.CardTitle>CSV</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground">
+						Comma-separated values with proper escaping for special characters.
+					</p>
+				</Card.CardContent>
+			</Card.Card>
+
+			<Card.Card>
+				<Card.CardHeader class="flex flex-row items-center gap-2">
+					<FileSpreadsheet class="h-6 w-6 text-emerald-500" />
+					<Card.CardTitle>Excel</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground">
+						Uses xlsx library if available, falls back to TSV format.
+					</p>
+				</Card.CardContent>
+			</Card.Card>
+
+			<Card.Card>
+				<Card.CardHeader class="flex flex-row items-center gap-2">
+					<FileType class="h-6 w-6 text-rose-500" />
+					<Card.CardTitle>PDF</Card.CardTitle>
+				</Card.CardHeader>
+				<Card.CardContent>
+					<p class="text-sm text-muted-foreground">
+						Opens print dialog for saving as PDF via browser.
+					</p>
+				</Card.CardContent>
+			</Card.Card>
+		</div>
+
+		<Card.Card class="bg-slate-950 text-slate-50">
+			<Card.CardHeader>
+				<Card.CardTitle class="text-slate-50">Usage Example</Card.CardTitle>
+			</Card.CardHeader>
+			<Card.CardContent>
+				<pre class="overflow-x-auto text-xs font-mono"><code
+						>// In +page.svelte
+function handleExport(format: ExportFormat) {'{'}
+  ExportHelper.export(format, data, columns, 'filename');
+{'}'}
+
+// In template - choose available formats
+&lt;DataTableToolbar 
+  onExport={'{'}handleExport{'}'} 
+  exportFormats={'{'}['csv', 'xlsx']{'}'}  // Only CSV and Excel
+/&gt;</code
+					></pre>
+			</Card.CardContent>
+		</Card.Card>
 	</section>
 
 	<Separator />
